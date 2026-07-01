@@ -1,7 +1,8 @@
 # 🍽️ The Taste Bite Project
 
 > **A full-cycle data analytics portfolio project** covering data cleaning, feature engineering, relational database design, SQL analysis, interactive dashboard prototyping, and professional client-facing reporting — completed as the ALX Data Analytics Programme capstone (Group 6, Project B).
-
+> 
+https://github.com/Tosa-omokhoa/The-Taste-Bite-Project/blob/main/dasboard/tastebite_dashboard.html
 ---
 
 ## 📊 Dashboard Preview

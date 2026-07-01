@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TasteBite Analytics Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --terra:    #C1563A;
+    --terra2:   #8B3A1C;
+    --amber:    #E8922A;
+    --amber2:   #D4780F;
+    --sage:     #4E8B5F;
+    --sage2:    #3A6B48;
+    --rose:     #C4525A;
+    --stone:    #8C6D52;
+    --espresso: #2C1A0E;
+    --cream:    #FBF3E8;
+    --sand:     #EDD9C0;
+    --sand2:    #E2C9A8;
+    --white:    #FFFFFF;
+    --text-dark:#1A0F06;
+    --text-mid: #4A3728;
+    --text-mute:#7A5C44;
+    --border:   #D4A97A;
+    --shadow:   0 2px 12px rgba(44,26,14,0.10);
+    --shadow-lg:0 4px 24px rgba(44,26,14,0.14);
+    --radius:   10px;
+    --radius-lg:14px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text-dark);
+    min-height: 100vh;
+  }
+
+  /* ── NAV ───────────────────────────────────────────────────────────────── */
+  .nav-bar {
+    background: var(--white);
+    border-bottom: 2px solid var(--sand2);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(44,26,14,0.08);
+    flex-wrap: wrap;
+    min-height: 52px;
+  }
+  .nav-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    color: var(--terra2);
+    font-weight: 700;
+    margin-right: 16px;
+    white-space: nowrap;
+  }
+  .nav-btn {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--text-mid);
+    padding: 7px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all .22s ease;
+    white-space: nowrap;
+  }
+  .nav-btn:hover { background: var(--sand); border-color: var(--terra); color: var(--terra2); }
+  .nav-btn.active {
+    background: var(--terra);
+    border-color: var(--terra);
+    color: var(--white);
+    box-shadow: 0 2px 8px rgba(193,86,58,0.35);
+  }
+  .nav-meta { margin-left: auto; font-size: 11px; color: var(--text-mute); white-space: nowrap; }
+
+  /* ── PAGE WRAPPER ──────────────────────────────────────────────────────── */
+  .page { display: none; padding: 20px 24px 36px; animation: fadeIn .3s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+  /* ── PAGE HEADER ───────────────────────────────────────────────────────── */
+  .page-header {
+    background: linear-gradient(135deg, var(--espresso) 0%, #4A2810 100%);
+    border-radius: var(--radius-lg);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow-lg);
+  }
+  .page-header-text h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(16px, 2.5vw, 22px);
+    color: var(--cream);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .page-header-text p {
+    font-size: 12px;
+    color: var(--stone);
+    margin-top: 4px;
+  }
+  .logo-badge {
+    background: var(--terra);
+    color: var(--white);
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 6px 16px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(193,86,58,0.4);
+  }
+
+  /* ── KPI STRIP ─────────────────────────────────────────────────────────── */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  @media (max-width: 1100px) { .kpi-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 600px)  { .kpi-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  .kpi-card {
+    background: var(--white);
+    border: 1.5px solid var(--sand2);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    transition: transform .18s, box-shadow .18s;
+    border-top: 3px solid var(--terra);
+  }
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .kpi-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+  }
+  .kpi-val {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(20px, 2.5vw, 26px);
+    font-weight: 700;
+    color: var(--terra);
+    line-height: 1.1;
+  }
+  .kpi-sub {
+    font-size: 10px;
+    color: var(--text-mute);
+    margin-top: 4px;
+    font-weight: 400;
+  }
+
+  /* ── CARD GRID ─────────────────────────────────────────────────────────── */
+  .card-grid { display: grid; gap: 14px; margin-bottom: 14px; }
+  .cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cols-32 { grid-template-columns: 3fr 2fr; }
+  .cols-23 { grid-template-columns: 2fr 3fr; }
+  @media (max-width: 960px) {
+    .cols-3, .cols-32, .cols-23 { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 640px) {
+    .cols-3, .cols-2, .cols-32, .cols-23 { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--white);
+    border: 1.5px solid var(--sand2);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+    transition: box-shadow .18s;
+  }
+  .card:hover { box-shadow: var(--shadow-lg); }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1.5px solid var(--sand);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .card-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 14px;
+    background: var(--terra);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ── BAR CHARTS ────────────────────────────────────────────────────────── */
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 7px;
+  }
+  .bar-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-dark);
+    width: 88px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+  .bar-track {
+    flex: 1;
+    height: 16px;
+    background: var(--sand);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 8px;
+    transition: width .6s cubic-bezier(.4,0,.2,1);
+  }
+  .bar-fill.c-terra  { background: linear-gradient(90deg, var(--terra2), var(--terra)); }
+  .bar-fill.c-amber  { background: linear-gradient(90deg, var(--amber2), var(--amber)); }
+  .bar-fill.c-sage   { background: linear-gradient(90deg, var(--sage2), var(--sage)); }
+  .bar-fill.c-stone  { background: linear-gradient(90deg, #6B503A, var(--stone)); }
+  .bar-fill.c-rose   { background: linear-gradient(90deg, #A83840, var(--rose)); }
+  .bar-val {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dark);
+    width: 38px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  /* ── DONUT CHART (SVG-based, perfect circle) ───────────────────────────── */
+  .donut-wrap { display: flex; align-items: center; gap: 20px; }
+  .donut-svg { flex-shrink: 0; }
+  .donut-legend { display: flex; flex-direction: column; gap: 6px; }
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-dark);
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .legend-pct { font-weight: 700; color: var(--text-dark); margin-left: 2px; }
+
+  /* ── INSIGHT BOX ───────────────────────────────────────────────────────── */
+  .insight {
+    background: var(--cream);
+    border-left: 3.5px solid var(--terra);
+    border-radius: 0 8px 8px 0;
+    padding: 10px 13px;
+    font-size: 12px;
+    color: var(--text-dark);
+    line-height: 1.6;
+    margin-top: 12px;
+  }
+  .insight b { color: var(--terra2); font-weight: 700; }
+
+  /* ── SPLIT TILES ───────────────────────────────────────────────────────── */
+  .split-tiles { display: flex; gap: 10px; margin-bottom: 10px; }
+  .tile {
+    flex: 1;
+    border-radius: var(--radius);
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .tile-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.85); text-transform: uppercase; letter-spacing: 0.4px; }
+  .tile-val   { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #fff; margin: 4px 0 2px; line-height: 1; }
+  .tile-sub   { font-size: 10px; color: rgba(255,255,255,0.75); }
+  .tile-terra { background: linear-gradient(135deg, var(--terra2), var(--terra)); box-shadow: 0 4px 14px rgba(193,86,58,0.35); }
+  .tile-stone { background: linear-gradient(135deg, #6B503A, var(--stone)); box-shadow: 0 4px 14px rgba(140,109,82,0.3); }
+  .tile-sage  { background: linear-gradient(135deg, var(--sage2), var(--sage)); box-shadow: 0 4px 14px rgba(78,139,95,0.35); }
+  .tile-rose  { background: linear-gradient(135deg, #A83840, var(--rose)); box-shadow: 0 4px 14px rgba(196,82,90,0.35); }
+  .tile-amber { background: linear-gradient(135deg, var(--amber2), var(--amber)); box-shadow: 0 4px 14px rgba(232,146,42,0.35); }
+  .tile-espresso { background: linear-gradient(135deg, #1A0F06, var(--espresso)); box-shadow: 0 4px 14px rgba(44,26,14,0.3); }
+
+  /* ── STACKED BAR (for cuisine by loyalty) ───────────────────────────────── */
+  .stacked-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+  .stacked-track { flex: 1; height: 16px; display: flex; border-radius: 8px; overflow: hidden; }
+  .stacked-a { background: var(--sage); }
+  .stacked-b { background: var(--stone); }
+
+  /* ── COMPARISON TABLE ──────────────────────────────────────────────────── */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .compare-table th {
+    background: var(--espresso);
+    color: var(--cream);
+    font-weight: 600;
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .compare-table th:first-child { border-radius: 6px 0 0 6px; }
+  .compare-table th:last-child  { border-radius: 0 6px 6px 0; }
+  .compare-table td { padding: 8px 10px; border-bottom: 1px solid var(--sand); font-weight: 500; color: var(--text-dark); }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: var(--cream); }
+  .compare-table .highlight { color: var(--terra); font-weight: 700; }
+  .compare-table .dim { color: var(--text-mute); }
+
+  /* ── FOOTER ─────────────────────────────────────────────────────────────── */
+  .dashboard-footer {
+    text-align: center;
+    padding: 18px 24px 10px;
+    font-size: 11px;
+    color: var(--text-mute);
+    border-top: 1px solid var(--sand2);
+  }
+  .dashboard-footer a { color: var(--terra); text-decoration: none; font-weight: 600; }
+  .dashboard-footer a:hover { text-decoration: underline; }
+
+  /* ── RESPONSIVE TWEAKS ───────────────────────────────────────────────────── */
+  @media (max-width: 768px) {
+    .page { padding: 14px 14px 30px; }
+    .page-header { padding: 14px 16px; }
+    .bar-label { width: 72px; font-size: 11px; }
+  }
+  @media (max-width: 480px) {
+    .nav-bar { padding: 8px 12px; gap: 6px; }
+    .nav-brand { font-size: 14px; margin-right: 8px; }
+    .nav-btn { padding: 5px 10px; font-size: 11px; }
+    .page-header-text h1 { font-size: 15px; }
+    .kpi-val { font-size: 20px; }
+  }
+
+  /* ── TOOLTIP ─────────────────────────────────────────────────────────────── */
+  [data-tip] { position: relative; cursor: default; }
+  [data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--espresso);
+    color: var(--cream);
+    font-size: 11px;
+    padding: 5px 9px;
+    border-radius: 6px;
+    white-space: nowrap;
+    z-index: 200;
+    pointer-events: none;
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* ── SECTION DIVIDER ─────────────────────────────────────────────────────── */
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-mute);
+    margin-bottom: 10px;
+    margin-top: 4px;
+    padding-left: 2px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ── NAV ───────────────────────────────────────────────────────────────── -->
+<nav class="nav-bar">
+  <span class="nav-brand">TasteBite Analytics</span>
+  <button class="nav-btn active" onclick="showPage(0,this)">Page 1 — Customer &amp; Revenue</button>
+  <button class="nav-btn" onclick="showPage(1,this)">Page 2 — Satisfaction</button>
+  <button class="nav-btn" onclick="showPage(2,this)">Page 3 — Loyalty</button>
+  <span class="nav-meta">1,500 customers &nbsp;|&nbsp; Project B &nbsp;|&nbsp; <a href="https://github.com/Tosa-omokhoa/The-Taste-Bite-Project" target="_blank" style="color:var(--terra);text-decoration:none;font-weight:600;">GitHub ↗</a></span>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!--  PAGE 1 — CUSTOMER & REVENUE                                           -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="page active" id="page0">
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1>Customer &amp; Revenue Overview</h1>
+      <p>Who are our customers and how much are they worth?</p>
+    </div>
+    <div class="logo-badge">TasteBite</div>
+  </div>
+
+  <!-- KPI Strip -->
+  <div class="kpi-strip">
+    <div class="kpi-card" data-tip="Full dataset — 741 male, 759 female">
+      <div class="kpi-label">Total Customers</div>
+      <div class="kpi-val">1,500</div>
+      <div class="kpi-sub">741 male · 759 female</div>
+    </div>
+    <div class="kpi-card" data-tip="Range: $10.31 – $199.97">
+      <div class="kpi-label">Avg Spend / Visit</div>
+      <div class="kpi-val">$105.66</div>
+      <div class="kpi-sub">Range: $10 – $200</div>
+    </div>
+    <div class="kpi-card" data-tip="201 of 1,500 customers rated highly satisfied">
+      <div class="kpi-label">High Satisfaction</div>
+      <div class="kpi-val">13.4%</div>
+      <div class="kpi-sub">201 of 1,500</div>
+    </div>
+    <div class="kpi-card" data-tip="720 customers enrolled in loyalty programme">
+      <div class="kpi-label">Loyalty Members</div>
+      <div class="kpi-val">48.0%</div>
+      <div class="kpi-sub">720 enrolled</div>
+    </div>
+    <div class="kpi-card" data-tip="Highly satisfied customers wait avg. 23.9 min">
+      <div class="kpi-label">Avg Wait Time</div>
+      <div class="kpi-val">30.2 min</div>
+      <div class="kpi-sub">Satisfied: 23.9 min</div>
+    </div>
+    <div class="kpi-card" data-tip="Composite: Service + Food + Ambiance ratings (max 15)">
+      <div class="kpi-label">Avg Sat Score</div>
+      <div class="kpi-val">9.03/15</div>
+      <div class="kpi-sub">Service + Food + Ambiance</div>
+    </div>
+  </div>
+
+  <!-- Row 1: 3 charts -->
+  <div class="section-label">Demographics &amp; Preferences</div>
+  <div class="card-grid cols-3">
+
+    <div class="card">
+      <div class="card-title">Customers by Age Group</div>
+      <div class="bar-row"><span class="bar-label">56–69</span><div class="bar-track"><div class="bar-fill c-terra" style="width:100%"></div></div><span class="bar-val">420</span></div>
+      <div class="bar-row"><span class="bar-label">36–45</span><div class="bar-track"><div class="bar-fill c-terra" style="width:72%"></div></div><span class="bar-val">304</span></div>
+      <div class="bar-row"><span class="bar-label">46–55</span><div class="bar-track"><div class="bar-fill c-terra" style="width:68%"></div></div><span class="bar-val">287</span></div>
+      <div class="bar-row"><span class="bar-label">26–35</span><div class="bar-track"><div class="bar-fill c-terra" style="width:61%"></div></div><span class="bar-val">256</span></div>
+      <div class="bar-row"><span class="bar-label">18–25</span><div class="bar-track"><div class="bar-fill c-terra" style="width:55%"></div></div><span class="bar-val">233</span></div>
+      <div class="insight">Oldest segment (56–69) is the <b>largest at 28%</b> — a key demographic for menu and service decisions.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Cuisine Preference</div>
+      <div class="bar-row"><span class="bar-label">Italian</span><div class="bar-track"><div class="bar-fill c-amber" style="width:100%"></div></div><span class="bar-val">325</span></div>
+      <div class="bar-row"><span class="bar-label">Chinese</span><div class="bar-track"><div class="bar-fill c-amber" style="width:95%"></div></div><span class="bar-val">310</span></div>
+      <div class="bar-row"><span class="bar-label">Mexican</span><div class="bar-track"><div class="bar-fill c-amber" style="width:92%"></div></div><span class="bar-val">299</span></div>
+      <div class="bar-row"><span class="bar-label">Indian</span><div class="bar-track"><div class="bar-fill c-amber" style="width:91%"></div></div><span class="bar-val">296</span></div>
+      <div class="bar-row"><span class="bar-label">American</span><div class="bar-track"><div class="bar-fill c-amber" style="width:83%"></div></div><span class="bar-val">270</span></div>
+      <div class="insight">Preferences are <b>broadly distributed</b> — no single cuisine dominates, supporting a diverse menu strategy.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Visit Frequency</div>
+      <div class="bar-row"><span class="bar-label">Weekly</span><div class="bar-track"><div class="bar-fill c-stone" style="width:100%"></div></div><span class="bar-val">606</span></div>
+      <div class="bar-row"><span class="bar-label">Monthly</span><div class="bar-track"><div class="bar-fill c-stone" style="width:71%"></div></div><span class="bar-val">428</span></div>
+      <div class="bar-row"><span class="bar-label">Rarely</span><div class="bar-track"><div class="bar-fill c-stone" style="width:52%"></div></div><span class="bar-val">313</span></div>
+      <div class="bar-row"><span class="bar-label">Daily</span><div class="bar-track"><div class="bar-fill c-stone" style="width:25%"></div></div><span class="bar-val">153</span></div>
+      <div class="insight">Weekly visitors form the <b>largest group (40.4%)</b>. Only 10.2% visit daily — a growth opportunity.</div>
+    </div>
+  </div>
+
+  <!-- Row 2: Revenue -->
+  <div class="section-label">Spending &amp; Revenue</div>
+  <div class="card-grid cols-3">
+
+    <div class="card">
+      <div class="card-title">Avg Spend by Cuisine ($)</div>
+      <div class="bar-row"><span class="bar-label">Mexican</span><div class="bar-track"><div class="bar-fill c-terra" style="width:100%"></div></div><span class="bar-val">$107</span></div>
+      <div class="bar-row"><span class="bar-label">American</span><div class="bar-track"><div class="bar-fill c-terra" style="width:99%"></div></div><span class="bar-val">$106</span></div>
+      <div class="bar-row"><span class="bar-label">Chinese</span><div class="bar-track"><div class="bar-fill c-terra" style="width:99%"></div></div><span class="bar-val">$106</span></div>
+      <div class="bar-row"><span class="bar-label">Italian</span><div class="bar-track"><div class="bar-fill c-terra" style="width:99%"></div></div><span class="bar-val">$106</span></div>
+      <div class="bar-row"><span class="bar-label">Indian</span><div class="bar-track"><div class="bar-fill c-terra" style="width:95%"></div></div><span class="bar-val">$102</span></div>
+      <div class="insight">Spend barely varies by cuisine (~$5 range). <b>Cuisine choice does not drive spending behaviour.</b></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Revenue Segment</div>
+      <div class="donut-wrap">
+        <!-- Perfect donut via SVG with precise stroke-dasharray -->
+        <svg class="donut-svg" width="110" height="110" viewBox="0 0 110 110">
+          <circle cx="55" cy="55" r="40" fill="none" stroke="#EDD9C0" stroke-width="20"/>
+          <!-- Low Value 46.4% = 116.5deg of 251.3 circumference -->
+          <circle cx="55" cy="55" r="40" fill="none" stroke="#8C6D52" stroke-width="20"
+            stroke-dasharray="116.6 134.7" stroke-dashoffset="62.8" stroke-linecap="butt"/>
+          <!-- Mid Value 34.1% = 85.7deg -->
+          <circle cx="55" cy="55" r="40" fill="none" stroke="#E8922A" stroke-width="20"
+            stroke-dasharray="85.7 165.6" stroke-dashoffset="-53.8" stroke-linecap="butt"/>
+          <!-- High Value 19.5% = 49.0deg -->
+          <circle cx="55" cy="55" r="40" fill="none" stroke="#4E8B5F" stroke-width="20"
+            stroke-dasharray="49.0 202.3" stroke-dashoffset="-139.5" stroke-linecap="butt"/>
+          <text x="55" y="51" text-anchor="middle" font-family="Playfair Display,serif" font-size="13" font-weight="700" fill="#2C1A0E">46.4%</text>
+          <text x="55" y="64" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#7A5C44">Low Value</text>
+        </svg>
+        <div class="donut-legend">
+          <div class="legend-row"><span class="legend-dot" style="background:#8C6D52"></span>Low Value <span class="legend-pct">46.4%</span></div>
+          <div class="legend-row"><span class="legend-dot" style="background:#E8922A"></span>Mid Value <span class="legend-pct">34.1%</span></div>
+          <div class="legend-row"><span class="legend-dot" style="background:#4E8B5F"></span>High Value <span class="legend-pct">19.5%</span></div>
+        </div>
+      </div>
+      <div class="insight">High-value customers (19.5%) likely drive a <b>disproportionate share</b> of total revenue potential.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Meal Type Split</div>
+      <div class="split-tiles">
+        <div class="tile tile-terra">
+          <div class="tile-label">Dine-in</div>
+          <div class="tile-val">751</div>
+          <div class="tile-sub">Sat: 18.4%</div>
+        </div>
+        <div class="tile tile-stone">
+          <div class="tile-label">Takeaway</div>
+          <div class="tile-val">749</div>
+          <div class="tile-sub">Sat: 8.4%</div>
+        </div>
+      </div>
+      <div class="insight">Dine-in guests are <b>2.2× more likely</b> to be highly satisfied — the in-restaurant experience is significantly stronger.</div>
+    </div>
+
+  </div>
+</div><!-- /page 0 -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!--  PAGE 2 — SATISFACTION                                                 -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="page1">
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1>Satisfaction &amp; Experience Analysis</h1>
+      <p>What drives satisfaction — and where does the experience break down?</p>
+    </div>
+    <div class="logo-badge">TasteBite</div>
+  </div>
+
+  <!-- KPI Strip -->
+  <div class="kpi-strip">
+    <div class="kpi-card"><div class="kpi-label">Total Customers</div><div class="kpi-val">1,500</div><div class="kpi-sub">741 male · 759 female</div></div>
+    <div class="kpi-card"><div class="kpi-label">Avg Spend / Visit</div><div class="kpi-val">$105.66</div><div class="kpi-sub">Range: $10 – $200</div></div>
+    <div class="kpi-card"><div class="kpi-label">High Satisfaction</div><div class="kpi-val">13.4%</div><div class="kpi-sub">201 of 1,500</div></div>
+    <div class="kpi-card"><div class="kpi-label">Loyalty Members</div><div class="kpi-val">48.0%</div><div class="kpi-sub">720 enrolled</div></div>
+    <div class="kpi-card"><div class="kpi-label">Avg Wait Time</div><div class="kpi-val">30.2 min</div><div class="kpi-sub">Satisfied: 23.9 min</div></div>
+    <div class="kpi-card"><div class="kpi-label">Avg Sat Score</div><div class="kpi-val">9.03/15</div><div class="kpi-sub">Service + Food + Ambiance</div></div>
+  </div>
+
+  <!-- Row 1 -->
+  <div class="section-label">Satisfaction Distribution &amp; Rating Dimensions</div>
+  <div class="card-grid cols-3">
+
+    <div class="card">
+      <div class="card-title">Satisfaction Tier Distribution</div>
+      <div class="donut-wrap">
+        <svg class="donut-svg" width="110" height="110" viewBox="0 0 110 110">
+          <circle cx="55" cy="55" r="40" fill="none" stroke="#EDD9C0" stroke-width="20"/>
+          <!-- Neutral 39.5% -->
+          <circle cx="55" cy="55" r="40" fill="none" stroke="#8C6D52" stroke-width="20"
+            stroke-dasharray="99.3 151.9" stroke-dashoffset="62.8" stroke-linecap="butt"/>
+          <!-- Satisfied 35.4% -->
+          <circle cx="55" cy="55" r="40" fill="none" stroke="#E8922A" stroke-width="20"
+            stroke-dasharray="89.0 162.3" stroke-dashoffset="-36.5" stroke-linecap="butt"/>
+          <!-- Dissatisfied 16.7% -->
+          <circle cx="55" cy="55" r="40" fill="none" stroke="#C4525A" stroke-width="20"
+            stroke-dasharray="41.9 209.4" stroke-dashoffset="-125.5" stroke-linecap="butt"/>
+          <!-- Delighted 8.4% -->
+          <circle cx="55" cy="55" r="40" fill="none" stroke="#C1563A" stroke-width="20"
+            stroke-dasharray="21.1 230.2" stroke-dashoffset="-167.4" stroke-linecap="butt"/>
+          <text x="55" y="51" text-anchor="middle" font-family="Playfair Display,serif" font-size="13" font-weight="700" fill="#2C1A0E">39.5%</text>
+          <text x="55" y="64" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#7A5C44">Neutral</text>
+        </svg>
+        <div class="donut-legend">
+          <div class="legend-row"><span class="legend-dot" style="background:#8C6D52"></span>Neutral <span class="legend-pct">39.5%</span></div>
+          <div class="legend-row"><span class="legend-dot" style="background:#E8922A"></span>Satisfied <span class="legend-pct">35.4%</span></div>
+          <div class="legend-row"><span class="legend-dot" style="background:#C4525A"></span>Dissatisfied <span class="legend-pct">16.7%</span></div>
+          <div class="legend-row"><span class="legend-dot" style="background:#C1563A"></span>Delighted <span class="legend-pct">8.4%</span></div>
+        </div>
+      </div>
+      <div class="insight">Only <b>8.4% of customers are Delighted</b> — the aspiration metric for TasteBite's service team.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Avg Rating by Dimension (out of 5)</div>
+      <div class="bar-row"><span class="bar-label">Service</span><div class="bar-track"><div class="bar-fill c-terra" style="width:61%"></div></div><span class="bar-val">3.04</span></div>
+      <div class="bar-row"><span class="bar-label">Food</span><div class="bar-track"><div class="bar-fill c-amber" style="width:60%"></div></div><span class="bar-val">3.00</span></div>
+      <div class="bar-row"><span class="bar-label">Ambiance</span><div class="bar-track"><div class="bar-fill c-stone" style="width:60%"></div></div><span class="bar-val">2.99</span></div>
+
+      <div style="margin-top:14px;">
+        <table class="compare-table">
+          <tr><th>Dimension</th><th>Satisfied</th><th>Not Satisfied</th></tr>
+          <tr><td>Avg Service</td><td class="highlight">3.61</td><td class="dim">2.96</td></tr>
+          <tr><td>Avg Food</td><td class="highlight">3.58</td><td class="dim">2.92</td></tr>
+          <tr><td>Avg Ambiance</td><td class="highlight">3.52</td><td class="dim">2.91</td></tr>
+          <tr><td>Avg Wait (min)</td><td class="highlight">23.9</td><td class="dim">31.1</td></tr>
+        </table>
+      </div>
+      <div class="insight">All three rating dimensions are higher for satisfied customers — <b>no single weak point; broad improvement needed.</b></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Wait Time Category vs Satisfaction</div>
+      <div class="bar-row"><span class="bar-label" style="width:110px;">Short ≤15 min</span><div class="bar-track"><div class="bar-fill c-sage" style="width:90%"></div></div><span class="bar-val" style="color:var(--sage2)">Higher</span></div>
+      <div class="bar-row"><span class="bar-label" style="width:110px;">Mod 16–30 min</span><div class="bar-track"><div class="bar-fill c-sage" style="width:66%"></div></div><span class="bar-val">Moderate</span></div>
+      <div class="bar-row"><span class="bar-label" style="width:110px;">Long 31–45 min</span><div class="bar-track"><div class="bar-fill c-amber" style="width:48%"></div></div><span class="bar-val">Lower</span></div>
+      <div class="bar-row"><span class="bar-label" style="width:110px;">Very Long >45min</span><div class="bar-track"><div class="bar-fill c-rose" style="width:30%"></div></div><span class="bar-val" style="color:var(--rose)">Lowest</span></div>
+      <div class="insight">Wait time has a clear, <b>consistent inverse relationship</b> with satisfaction. Reducing average wait time is a high-ROI operational lever.</div>
+    </div>
+  </div>
+
+  <!-- Row 2 -->
+  <div class="section-label">Key Experience Drivers</div>
+  <div class="card-grid cols-2">
+
+    <div class="card">
+      <div class="card-title">Online Reservation Impact on Satisfaction</div>
+      <div class="split-tiles">
+        <div class="tile tile-sage">
+          <div class="tile-label">With Reservation</div>
+          <div class="tile-val">23.6%</div>
+          <div class="tile-sub">high satisfaction</div>
+        </div>
+        <div class="tile tile-rose">
+          <div class="tile-label">Walk-in</div>
+          <div class="tile-val">9.1%</div>
+          <div class="tile-sub">high satisfaction</div>
+        </div>
+      </div>
+      <div class="insight">Online reservers are <b>2.6× more likely</b> to be highly satisfied — the single strongest predictor of a great experience in this dataset. Promoting reservations could meaningfully lift overall satisfaction.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Satisfaction Score by Dining Occasion</div>
+      <div class="bar-row"><span class="bar-label">Business</span><div class="bar-track"><div class="bar-fill c-terra" style="width:100%"></div></div><span class="bar-val">9.11</span></div>
+      <div class="bar-row"><span class="bar-label">Casual</span><div class="bar-track"><div class="bar-fill c-amber" style="width:99%"></div></div><span class="bar-val">9.06</span></div>
+      <div class="bar-row"><span class="bar-label">Celebration</span><div class="bar-track"><div class="bar-fill c-rose" style="width:97%"></div></div><span class="bar-val">8.92</span></div>
+      <div class="insight"><b>Celebration occasions score lowest</b> (8.92) — an opportunity to improve the special event dining experience through dedicated menus, ambiance upgrades, or event packages.</div>
+    </div>
+
+  </div>
+</div><!-- /page 1 -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!--  PAGE 3 — LOYALTY                                                      -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="page2">
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1>Loyalty &amp; Digital Engagement</h1>
+      <p>Is the loyalty programme working — and who are TasteBite's most valuable customers?</p>
+    </div>
+    <div class="logo-badge">TasteBite</div>
+  </div>
+
+  <!-- KPI Strip -->
+  <div class="kpi-strip">
+    <div class="kpi-card"><div class="kpi-label">Total Customers</div><div class="kpi-val">1,500</div><div class="kpi-sub">741 male · 759 female</div></div>
+    <div class="kpi-card"><div class="kpi-label">Avg Spend / Visit</div><div class="kpi-val">$105.66</div><div class="kpi-sub">Range: $10 – $200</div></div>
+    <div class="kpi-card"><div class="kpi-label">High Satisfaction</div><div class="kpi-val">13.4%</div><div class="kpi-sub">201 of 1,500</div></div>
+    <div class="kpi-card"><div class="kpi-label">Loyalty Members</div><div class="kpi-val">48.0%</div><div class="kpi-sub">720 enrolled</div></div>
+    <div class="kpi-card"><div class="kpi-label">Avg Wait Time</div><div class="kpi-val">30.2 min</div><div class="kpi-sub">Satisfied: 23.9 min</div></div>
+    <div class="kpi-card" style="border-top-color:var(--sage)">
+      <div class="kpi-label">Loyal &amp; Satisfied</div>
+      <div class="kpi-val" style="color:var(--sage)">201</div>
+      <div class="kpi-sub">Core retention target</div>
+    </div>
+  </div>
+
+  <!-- Row 1 -->
+  <div class="section-label">Loyalty Programme Performance</div>
+  <div class="card-grid cols-3">
+
+    <div class="card">
+      <div class="card-title">Member vs Non-Member Satisfaction</div>
+      <div class="split-tiles">
+        <div class="tile tile-sage">
+          <div class="tile-label">Members</div>
+          <div class="tile-val">19.2%</div>
+          <div class="tile-sub">720 customers</div>
+        </div>
+        <div class="tile tile-stone">
+          <div class="tile-label">Non-Members</div>
+          <div class="tile-val">8.1%</div>
+          <div class="tile-sub">780 customers</div>
+        </div>
+      </div>
+      <div class="insight">Loyalty members are <b>2.4× more likely</b> to be highly satisfied — the programme is strongly correlated with a better experience.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Digital Engagement Level</div>
+      <div class="donut-wrap">
+        <svg class="donut-svg" width="110" height="110" viewBox="0 0 110 110">
+          <circle cx="55" cy="55" r="40" fill="none" stroke="#EDD9C0" stroke-width="20"/>
+          <!-- Low Digital ~36% -->
+          <circle cx="55" cy="55" r="40" fill="none" stroke="#8C6D52" stroke-width="20"
+            stroke-dasharray="90.5 160.8" stroke-dashoffset="62.8" stroke-linecap="butt"/>
+          <!-- Moderate ~35% -->
+          <circle cx="55" cy="55" r="40" fill="none" stroke="#E8922A" stroke-width="20"
+            stroke-dasharray="88.0 163.3" stroke-dashoffset="-27.7" stroke-linecap="butt"/>
+          <!-- Offline ~22% -->
+          <circle cx="55" cy="55" r="40" fill="none" stroke="#4A2810" stroke-width="20"
+            stroke-dasharray="55.3 195.9" stroke-dashoffset="-115.7" stroke-linecap="butt"/>
+          <!-- Fully Digital ~7% -->
+          <circle cx="55" cy="55" r="40" fill="none" stroke="#C1563A" stroke-width="20"
+            stroke-dasharray="17.6 233.6" stroke-dashoffset="-171.0" stroke-linecap="butt"/>
+          <text x="55" y="51" text-anchor="middle" font-family="Playfair Display,serif" font-size="13" font-weight="700" fill="#2C1A0E">36%</text>
+          <text x="55" y="64" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#7A5C44">Low Digital</text>
+        </svg>
+        <div class="donut-legend">
+          <div class="legend-row"><span class="legend-dot" style="background:#8C6D52"></span>Low Digital <span class="legend-pct">36%</span></div>
+          <div class="legend-row"><span class="legend-dot" style="background:#E8922A"></span>Moderate <span class="legend-pct">35%</span></div>
+          <div class="legend-row"><span class="legend-dot" style="background:#4A2810"></span>Offline <span class="legend-pct">22%</span></div>
+          <div class="legend-row"><span class="legend-dot" style="background:#C1563A"></span>Fully Digital <span class="legend-pct">7%</span></div>
+        </div>
+      </div>
+      <div class="insight">Over <b>57% of customers</b> use at least two digital channels — a solid base for further digital engagement growth.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Digital Engagement vs Satisfaction</div>
+      <div class="bar-row"><span class="bar-label" style="width:106px;">Fully Digital</span><div class="bar-track"><div class="bar-fill c-sage" style="width:100%"></div></div><span class="bar-val" style="color:var(--sage2)">Highest</span></div>
+      <div class="bar-row"><span class="bar-label" style="width:106px;">Moderate</span><div class="bar-track"><div class="bar-fill c-sage" style="width:74%"></div></div><span class="bar-val">High</span></div>
+      <div class="bar-row"><span class="bar-label" style="width:106px;">Low Digital</span><div class="bar-track"><div class="bar-fill c-amber" style="width:52%"></div></div><span class="bar-val">Mid</span></div>
+      <div class="bar-row"><span class="bar-label" style="width:106px;">Offline</span><div class="bar-track"><div class="bar-fill c-rose" style="width:32%"></div></div><span class="bar-val" style="color:var(--rose)">Lowest</span></div>
+      <div class="insight">Digital engagement is a clear <b>retention lever</b> — fully digital customers show the highest satisfaction rate in the dataset.</div>
+    </div>
+  </div>
+
+  <!-- Row 2 -->
+  <div class="section-label">Cuisine &amp; Retention Insights</div>
+  <div class="card-grid cols-2">
+
+    <div class="card">
+      <div class="card-title">Cuisine Preference by Loyalty Status</div>
+      <div style="font-size:11px; color:var(--text-mute); margin-bottom:10px; font-weight:500;">
+        <span style="display:inline-flex;align-items:center;gap:5px;margin-right:12px;"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--sage)"></span>Member</span>
+        <span style="display:inline-flex;align-items:center;gap:5px;"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--stone)"></span>Non-Member</span>
+      </div>
+      <div class="stacked-row"><span class="bar-label">Italian</span><div class="stacked-track"><div class="stacked-a" style="flex:52"></div><div class="stacked-b" style="flex:48"></div></div></div>
+      <div class="stacked-row"><span class="bar-label">Chinese</span><div class="stacked-track"><div class="stacked-a" style="flex:49"></div><div class="stacked-b" style="flex:51"></div></div></div>
+      <div class="stacked-row"><span class="bar-label">Mexican</span><div class="stacked-track"><div class="stacked-a" style="flex:50"></div><div class="stacked-b" style="flex:50"></div></div></div>
+      <div class="stacked-row"><span class="bar-label">Indian</span><div class="stacked-track"><div class="stacked-a" style="flex:44"></div><div class="stacked-b" style="flex:56"></div></div></div>
+      <div class="stacked-row"><span class="bar-label">American</span><div class="stacked-track"><div class="stacked-a" style="flex:47"></div><div class="stacked-b" style="flex:53"></div></div></div>
+      <div class="insight">Italian cuisine has the <b>highest loyalty membership share</b>. Indian and American cuisine-preferring customers are <b>slightly less likely</b> to be enrolled — a targeted enrolment opportunity.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Key Loyalty Insights</div>
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+        <div class="insight" style="margin-top:0">
+          Loyalty members are <b>2.4×</b> more likely to be highly satisfied (19.2% vs 8.1%) — the programme is delivering measurable value.
+        </div>
+        <div class="insight" style="margin-top:0; border-color:var(--amber)">
+          Only <b>201 customers</b> are both loyalty members AND highly satisfied — TasteBite's most valuable core segment and the primary focus for retention investment.
+        </div>
+        <div class="insight" style="margin-top:0; border-color:var(--sage)">
+          Digitally engaged customers show the highest satisfaction across the board — growing digital adoption (reservations, delivery, loyalty enrolment) is a <b>compounding retention lever</b>.
+        </div>
+        <div class="insight" style="margin-top:0; border-color:var(--stone)">
+          <b>52% of customers remain unenrolled</b> in the loyalty programme — a significant acquisition opportunity, especially among Indian and American cuisine preferences.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /page 2 -->
+
+<!-- ── FOOTER ─────────────────────────────────────────────────────────────── -->
+<footer class="dashboard-footer">
+  TasteBite Analytics Dashboard &nbsp;·&nbsp; Project B &nbsp;·&nbsp; ALX Data Analytics Programme &nbsp;·&nbsp;
+  Prepared by <strong>Omokhoa Oshose Tosayoname</strong> &nbsp;·&nbsp;
+  <a href="https://github.com/Tosa-omokhoa/The-Taste-Bite-Project" target="_blank">github.com/Tosa-omokhoa/The-Taste-Bite-Project ↗</a>
+</footer>
+
+<script>
+  function showPage(n, btn) {
+    document.querySelectorAll('.page').forEach((p, i) => {
+      p.classList.toggle('active', i === n);
+    });
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' }); 
+  }
+
+  // Animate bars on page load and page switch
+  function animateBars() {
+    document.querySelectorAll('.page.active .bar-fill').forEach(el => {
+      const w = el.style.width;
+      el.style.width = '0';
+      setTimeout(() => { el.style.width = w; }, 80);
+    });
+  }
+  document.addEventListener('DOMContentLoaded', animateBars);
+
+  // Re-animate on page switch
+  const origShow = window.showPage;
+  window.showPage = function(n, btn) {
+    origShow(n, btn);
+    setTimeout(animateBars, 50);
+  };
+</script>
+</body>
+</html>
